@@ -1,0 +1,27 @@
+{% extends "base.html" %} {% block content %} {% for task in tasks %}
+<div class="d-flex align-items-start flex-column mt-4 ml-4 mr-4" style="position:relative;">
+    <div class="card mb-2 col-md-8 col-sm-12">
+        <div class="card-body">
+            <div class="d-flex justify-content-between">
+                <h5 class="card-title">{{ task.name }}</h5>
+                <h5 class="card-title text-success">SOLVED</h5>
+            </div>
+            <p class="card-text">{{ task.description }}</p>
+            <div class="form-row align-items-center justify-content-between">
+                <div class="col-auto">
+                    <span class="fa fa-star star-checked"></span>
+                    <span class="fa fa-star star-checked"></span>
+                    <span class="fa fa-star star-checked"></span>
+                    <span class="fa fa-star"></span>
+                    <span class="fa fa-star"></span>
+                </div>
+                <div class="col-auto">
+                    <a href="{% url 'show_task' task.id %}">
+                    <button type="button" class="btn btn-primary mb-2">Attempt</button>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %} {% endblock %}

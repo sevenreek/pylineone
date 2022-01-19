@@ -1,0 +1,57 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>{% block title %}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"> {% block head %} {% endblock %}
+</head>
+
+<body>
+    {% block navbar %}
+    <nav class="navbar  navbar-dark bg-dark">
+
+        <div class="navbar-nav mr-auto flex-row">
+            <a class="nav-item nav-link pr-2" href="">Home</a>
+        </div>
+
+    </nav>
+    {% endblock %}
+
+    <div class="pagecontent">
+    {% block content %} {% endblock %}
+    </div>
+
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script>
+        function showToast(message, error) {
+            if (error) {
+                $('#toastHeaderImage').attr("src", "/svg/exclamation-circle-fill.svg");
+                $('#toastTitle').addClass("text-danger");
+                $('#toastTitle').removeClass("text-success");
+                $('#toastTitle').html("Error!");
+            } else {
+                $('#toastHeaderImage').attr("src", "/svg/check-circle-fill.svg");
+                $('#toastTitle').addClass("text-success");
+                $('#toastTitle').removeClass("text-danger");
+                $('#toastTitle').html("Success!");
+            }
+            $('#toastMessage').html(message);
+            $('.toast').toast('show');
+        }
+        function redirect(url) {
+            window.location=url;
+        }
+    </script>
+    {%block scripts %}
+    {% endblock %}
+</body>
+
+
+</html>

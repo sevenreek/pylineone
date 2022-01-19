@@ -1,0 +1,166 @@
+{% extends "base.html" %} 
+{% load static %}
+{% block head %} 
+    {% csrf_token %}
+    <link rel="stylesheet" href="{% static 'css/editor.css' %}">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/styles/default.min.css">
+{% endblock %} 
+{% block content %}
+    <div class="split">
+        <div id="split-0">
+            <!-- Tab links -->
+            <div class="tab" id="leftTabs">
+                <button class="tablinks" onclick="openTab('left', 'editor')">Task</button>
+                <button class="tablinks" onclick="openTab('left', 'shell')">Shell</button>
+            </div>
+            <div id="leftTabsContent">
+                <!-- Tab content -->
+                <div id="task" class="tabcontent">
+                    <h3  id="taskName" class="mb-2">{{ task.name }}</h3>
+                    <code class="language-python">
+                        <pre  id="taskDescription" class="fixed-code mb-0">{{ task.content }}
+                        </pre>
+                        <pre  id="taskExamples" class="fixed-code mb-0"># Examples:&#10;{{ task.examples|join:"&#10;"|linebreaks }}
+                        </pre>
+                        <pre  id="imports" class="fixed-code mb-0">{{ task.imports }}{% if task.imports %}
+                        {% endif %}</pre>
+                        <pre id="functionSignature" class="fixed-code mb-0">def {{ task.function_name }}({{ task.input_arguments|join:", " }}) -> {{task.output_type}}:</pre>
+                        <pre class="language-python return-line " id="userInput" contenteditable="true">None # edit this line</pre>
+                    </code>
+                </div>
+                
+                
+                <div id="shell" class="tabcontent">
+                    <pre>Hello?</pre>
+                </div>
+            </div>
+        </div>
+        <div id="split-1">
+            <div class="tab" id="rightTabs">
+                <button class="tablinks" onclick="openTab('right', 'tests')">Tests</button>
+                <button class="tablinks" onclick="openTab('right', 'hints')">Hints</button>
+                
+                <button class="btn btn-success float-right run-button" onclick="runTests()"><i class="fa fa-play"></i> Run tests</button>
+            </div>
+            
+            <div id="rightTabsContent">
+                <!-- Tab content -->
+                <div id="tests pt-2" class="tabcontent d-flex flex-column">
+                    {% for test in tests %}
+                    <div class="border-bottom pb-2 pt-2">
+                        <i class="fa fa-question text-warning"></i>
+                        <span class="h5">Test #{{forloop.counter}}</span>
+                        <button class="btn btn-success btn-sm float-right test-button"><i class="fa fa-play"></i></button>
+                        <button class="btn btn-info btn-sm float-right test-button mr-2"><i class="fa fa-eye"></i></button>
+                    </div>
+                    {% empty %}
+                    No tests...
+                    {% endfor %}
+                    
+                </div>
+                
+                <div id="hints" class="tabcontent">
+                    <h3>Hints</h3>
+                    <p>Paris is the capital of France.</p>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+{% endblock %}
+
+{%block scripts %}
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/split.js/1.6.0/split.min.js"></script>
+<script>
+    var activeLeft = "task";
+    var activeRight = "tests";
+    var modifiedInput = false;
+    $(document).ready(function() {
+        var s = Split(['#split-0', '#split-1'], {
+            direction: 'vertical',
+            gutterAlign: 'end',
+        });
+        $('code pre').get().forEach((el) => hljs.highlightElement(el));
+        $(`#${activeLeft}`).show();
+        $(`#${activeRight}`).show();
+        
+    });
+    jQuery.fn.selectText = function(){
+        var doc = document;
+        var element = this[0];
+        if (doc.body.createTextRange) {
+            var range = document.body.createTextRange();
+            range.moveToElementText(element);
+            range.select();
+        } else if (window.getSelection) {
+            var selection = window.getSelection();        
+            var range = document.createRange();
+            range.selectNodeContents(element);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
+     };
+    $("#userInput").on('focus', (e) =>
+    {
+        if(!modifiedInput)
+            $("#userInput").selectText();
+        // hljs.highlightElement(e.target); problematic
+    });
+    $("#userInput").on('input', (e) =>
+    {
+        modifiedInput = true;
+        // hljs.highlightElement(e.target); problematic
+    });
+    function openTab(tabset, tab) {
+        let tabsContent;
+        if(tabset=='left') {
+            tabsContent = $('#leftTabsContent');
+            $(`#${activeLeft}`).hide();
+            activeLeft = tab;
+        } else if (tabset=='right') {
+            tabsContent = $('#rightTabsContent');
+            $(`#${activeRight}`).hide();
+            activeRight = tab;
+        }
+      
+        // Get all elements with class="tabcontent" and hide them
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) {
+          tabcontent[i].style.display = "none";
+        }
+      
+        // Get all elements with class="tablinks" and remove the class "active"
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+          tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+      
+        // Show the current tab, and add an "active" class to the button that opened the tab
+        document.getElementById(cityName).style.display = "block";
+        evt.currentTarget.className += " active";
+      }
+    function runTests()
+    {
+        let userInput = $("#userInput").text();
+        let data = {'attempt':userInput};
+        console.log(JSON.stringify(data));
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        fetch("{% url 'check_task' task.task_id %}", {
+            method: 'POST', //*GET, POST, PUT, DELETE, etc.
+            cache: 'no-cache', //*default, no-cache, reload, force-cache, only-if-cached
+            credentials: "same-origin",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            redirect: 'error', // manual, *follow, Error
+            headers: { "X-CSRFToken": csrftoken },
+            body: userInput //treść wysyłana
+        })
+            .then((response) => response.json())
+            .then((res) => console.log(res)); 
+        
+    }
+</script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/highlight.min.js"></script>
+{% endblock %}
