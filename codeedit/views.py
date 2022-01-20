@@ -63,6 +63,7 @@ def check_task(request, task_id):
 
     print(expected_output)
     results = result.decode("utf-8").split("\n")
+    results = results[:-1] # remove last empty line
     print(results)
     successes = [e==o for e,o in zip(expected_output, results)]
     print(successes)

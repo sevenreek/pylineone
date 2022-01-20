@@ -7,6 +7,7 @@ name = "pypi"
 django = "*"
 pymongo = "*"
 python-dotenv = "*"
+docker = "*"
 
 [dev-packages]
 

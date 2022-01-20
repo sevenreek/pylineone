@@ -22,6 +22,7 @@ def get_mongo_client(name='pylineone', host=None, port=None, username=None, pass
 def pull_docker_image():
     client = docker.from_env()
     if 'python:latest' not in (i.tags for i in client.images.list()):
+        print("Pulling docker image. This will take a while...")
         client.images.pull('python')
 
 def get_detached_container():
