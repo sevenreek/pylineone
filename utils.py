@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from typing import Tuple
 import docker
 import os
+import re
 def get_mongo_client(name='pylineone', host=None, port=None, username=None, password=None) -> Tuple[MongoClient,Database]:
     load_dotenv()
     host = host or os.getenv("MONGO_HOST")
@@ -31,3 +32,7 @@ def get_detached_container():
 def run_script(script):
     client = docker.from_env()
     return client.containers.run('python', script, remove=True)
+
+def is_code_multi_line(code):
+    removed_strings = re.sub("([\"'])(?:(?=(\\?))\2.)*?\1", '', code)
+    return bool(re.search('[;\n]', removed_strings))
