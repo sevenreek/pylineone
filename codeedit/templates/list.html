@@ -1,19 +1,22 @@
-{% extends "base.html" %} {% block content %} {% for task in tasks %}
+{% extends "base.html" %}
+{% load codeedit_extras %} 
+{% block content %} 
+{% for task in tasks %}
 <div class="d-flex align-items-start flex-column mt-4 ml-4 mr-4" style="position:relative;">
     <div class="card mb-2 col-md-8 col-sm-12">
         <div class="card-body">
             <div class="d-flex justify-content-between">
                 <h5 class="card-title">{{ task.name }}</h5>
-                <h5 class="card-title text-success">SOLVED</h5>
+                <h5 class="card-title text-{% get_task_status_color task.id %}">{% get_task_status task.id %}</h5>
             </div>
             <p class="card-text">{{ task.description }}</p>
             <div class="form-row align-items-center justify-content-between">
                 <div class="col-auto">
-                    <span class="fa fa-star star-checked"></span>
-                    <span class="fa fa-star star-checked"></span>
-                    <span class="fa fa-star star-checked"></span>
-                    <span class="fa fa-star"></span>
-                    <span class="fa fa-star"></span>
+                    {% if task.toughness > 0 %}<span class="fa fa-star star-checked"></span> {% else %} <span class="fa fa-star"></span> {% endif %}
+                    {% if task.toughness >= 20 %}<span class="fa fa-star star-checked"></span> {% else %} <span class="fa fa-star"></span> {% endif %}
+                    {% if task.toughness >= 40 %}<span class="fa fa-star star-checked"></span> {% else %} <span class="fa fa-star"></span> {% endif %}
+                    {% if task.toughness >= 60 %}<span class="fa fa-star star-checked"></span> {% else %} <span class="fa fa-star"></span> {% endif %}
+                    {% if task.toughness >= 80 %}<span class="fa fa-star star-checked"></span> {% else %} <span class="fa fa-star"></span> {% endif %}
                 </div>
                 <div class="col-auto">
                     <a href="{% url 'show_task' task.id %}">
@@ -24,4 +27,5 @@
         </div>
     </div>
 </div>
-{% endfor %} {% endblock %}
+{% endfor %} 
+{% endblock %}

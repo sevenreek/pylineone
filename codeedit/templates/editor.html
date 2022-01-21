@@ -1,4 +1,5 @@
 {% extends "base.html" %} 
+{% load codeedit_extras %} 
 {% load static %}
 {% block head %} 
     {% csrf_token %}
@@ -6,11 +7,11 @@
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/styles/default.min.css">
 {% endblock %} 
 {% block content %}
-    <div class="split">
+    <div class="d-flex flex-column">
         <div id="split-0">
             <!-- Tab links -->
             <div class="tab" id="leftTabs">
-                <button class="tablinks" onclick="openTab('left', 'editor')">Task</button>
+                <button class="tablinks" onclick="openTab('left', 'task')">Task</button>
                 <button class="tablinks" onclick="openTab('left', 'shell')">Shell</button>
             </div>
             <div id="leftTabsContent">
@@ -25,7 +26,7 @@
                         <pre  id="imports" class="fixed-code mb-0">{{ task.imports }}{% if task.imports %}
                         {% endif %}</pre>
                         <pre id="functionSignature" class="fixed-code mb-0">def {{ task.function_name }}({{ task.input_arguments|join:", " }}) -> {{task.output_type}}:</pre>
-                        <pre class="language-python return-line " id="userInput" contenteditable="true">None # edit this line</pre>
+                        <pre class="language-python return-line " id="userInput" contenteditable="true">{% get_task_last_attempt task.id %}</pre>
                     </code>
                 </div>
                 
@@ -39,51 +40,87 @@
             <div class="tab" id="rightTabs">
                 <button class="tablinks" onclick="openTab('right', 'tests')">Tests</button>
                 <button class="tablinks" onclick="openTab('right', 'hints')">Hints</button>
-                
-                <button class="btn btn-success float-right run-button" onclick="runTests()"><i class="fa fa-play"></i> Run tests</button>
+                <button id="run-tests-button" class="btn btn-success float-right run-button" onclick="runTests()"><span id="run-tests-icon"><i class="fa fa-play"></i></span> Run tests</button>
             </div>
             
             <div id="rightTabsContent">
                 <!-- Tab content -->
-                <div id="tests pt-2" class="tabcontent d-flex flex-column">
-                    {% for test in tests %}
-                    <div class="border-bottom pb-2 pt-2">
-                        <span class="h5 text-danger">Test #{{forloop.counter}}</span>
-                        <button class="btn btn-success btn-sm float-right test-button "><i class="fa fa-play"></i></button>
-                        <button class="btn btn-info btn-sm float-right test-button mr-2 rounded-circle" data-toggle="collapse" data-target="#test-accordion-{{forloop.counter}}"><i class="fa fa-eye"></i></button>
-                        <span id="test-status-{{forloop.counter}}" class="h5  float-right mr-4"></span>
-                    </div>
-                    <div class="border-bottom collapse" id="test-accordion-{{forloop.counter}}">
-                        <div class="container">
-                            <div class="row">
-                              <div class="col-sm">
-                                Input:<br/> 
-                                {{test.input_positional|join:", "}}
-                              </div>
-                              <div class="col-sm">
-                                Expected output:<br/>
-                                {{test.output}}
-                              </div>
-                              <div class="col-sm">
-                                Your output:<br/>
-                                <span id="test-user-output-{{forloop.counter}}"></span>
-                                
-                              </div>
+                <div id="tests" class="tabcontent">
+                    <div class="d-flex flex-column pt-2">
+                        {% for test in tests %}
+                        <div id="test-name-{{forloop.counter}}" class="border-bottom pb-2 pt-2">
+                            <span class="h5">Test #{{forloop.counter}}</span>
+                            <!--<button class="btn btn-success btn-sm float-right test-button "><i class="fa fa-play"></i></button>-->
+                            <button class="btn btn-info btn-sm float-right test-button mr-2 rounded-circle" data-toggle="collapse" data-target="#test-accordion-{{forloop.counter}}"><i class="fa fa-eye"></i></button>
+                            <span id="test-status-{{forloop.counter}}" class="h5  float-right mr-4"></span>
+                        </div>
+                        <div class="border-bottom collapse" id="test-accordion-{{forloop.counter}}">
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-sm">
+                                        Input:<br/> 
+                                        {{test.input_positional|join:", "}}
+                                    </div>
+                                    <div class="col-sm">
+                                        Expected output:<br/>
+                                        {{test.output}}
+                                    </div>
+                                    <div class="col-sm">
+                                        Your output:<br/>
+                                        <span id="test-user-output-{{forloop.counter}}"></span>
+                                    
+                                    </div>
+                                </div>
                             </div>
-                          </div>
+                        </div>
+                        {% empty %}
+                        No tests...
+                        {% endfor %}
                     </div>
-                    {% empty %}
-                    No tests...
-                    {% endfor %}
-                    
                 </div>
                 
                 <div id="hints" class="tabcontent">
-                    <h3>Hints</h3>
-                    <p>Paris is the capital of France.</p>
+                    {% for hint in task.hints %}
+                        <div  class="border-bottom pb-2 pt-2">
+                            <span class="h5">Hint #{{forloop.counter}}</span>
+                            <!--<button class="btn btn-success btn-sm float-right test-button "><i class="fa fa-play"></i></button>-->
+                            <button class="btn btn-info btn-sm float-right test-button mr-2 rounded-circle" data-toggle="collapse" data-target="#hint-accordion-{{forloop.counter}}"><i class="fa fa-eye"></i></button>
+                            <span class="h5  float-right mr-4"></span>
+                        </div>
+                        <div class="border-bottom collapse" id="hint-accordion-{{forloop.counter}}">
+                            <div class="container">
+                                <div class="row">
+                                    {{hint}}
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        No hints...
+                        {% endfor %}
                 </div>
             </div>
             
+        </div>
+    </div>
+
+    <div class="modal fade " id="successModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                <h5 class="modal-title text-success" id="exampleModalLabel">Congratulations!</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                </div>
+                <div class="modal-body">
+                    All tests were successful!
+                    You can now try another solution or go back to the list of tasks and pick a new challenge.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Try another solution</button>
+                    <button type="button" class="btn btn-primary" onClick="redirect({% url 'list_tasks' %})">Pick another task</button>
+                </div>
+            </div>
         </div>
     </div>
 {% endblock %}
@@ -96,10 +133,6 @@
     var activeRight = "tests";
     var modifiedInput = false;
     $(document).ready(function() {
-        var s = Split(['#split-0', '#split-1'], {
-            direction: 'vertical',
-            gutterAlign: 'end',
-        });
         $('code pre').get().forEach((el) => hljs.highlightElement(el));
         $(`#${activeLeft}`).show();
         $(`#${activeRight}`).show();
@@ -137,26 +170,13 @@
             tabsContent = $('#leftTabsContent');
             $(`#${activeLeft}`).hide();
             activeLeft = tab;
+            $(`#${activeLeft}`).show();
         } else if (tabset=='right') {
             tabsContent = $('#rightTabsContent');
             $(`#${activeRight}`).hide();
             activeRight = tab;
+            $(`#${activeRight}`).show();
         }
-      
-        // Get all elements with class="tabcontent" and hide them
-        tabcontent = document.getElementsByClassName("tabcontent");
-        for (i = 0; i < tabcontent.length; i++) {
-          tabcontent[i].style.display = "none";
-        }
-      
-        // Get all elements with class="tablinks" and remove the class "active"
-        tablinks = document.getElementsByClassName("tablinks");
-        for (i = 0; i < tablinks.length; i++) {
-          tablinks[i].className = tablinks[i].className.replace(" active", "");
-        }
-      
-        // Show the current tab, and add an "active" class to the button that opened the tab
-        document.getElementById(tab).style.display = "block";
         evt.currentTarget.className += " active";
       }
     function runTests()
@@ -165,6 +185,8 @@
         let data = {'attempt':userInput};
         console.log(JSON.stringify(data));
         const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        $("#run-tests-icon").html("<i class='fa fa-circle-o-notch fa-spin'></i>");
+        $("#run-tests-button").prop('disabled', true);
         fetch("{% url 'check_task' task.task_id %}", {
             method: 'POST', //*GET, POST, PUT, DELETE, etc.
             cache: 'no-cache', //*default, no-cache, reload, force-cache, only-if-cached
@@ -175,11 +197,18 @@
             redirect: 'error', // manual, *follow, Error
             headers: { "X-CSRFToken": csrftoken },
             body: userInput //treść wysyłana
+        }).then((response) => {
+            $("#run-tests-icon").html("<i class='fa fa-play'></i>");
+            $("#run-tests-button").prop('disabled', false);
+            if (!response.ok) {
+                throw Error(response.statusText);
+            }
+            return response.json();
         })
-            .then((response) => response.json())
             .then((res) => {
-                console.log(res)
                 changeTestsState(res.return_values, res.test_results);
+            }).catch((error) => {
+                console.log(error);
             }); 
         
     }
@@ -189,15 +218,26 @@
         {
             let userOutput = $(`#test-user-output-${i+1}`);
             let testResult = $(`#test-status-${i+1}`);
+            let testName = $(`#test-name-${i+1}`);
             if(successes[i]) {
                 testResult.addClass("text-success");
                 testResult.removeClass("text-danger");
+                testName.addClass("text-success");
+                testName.removeClass("text-danger");
+                testResult.html("OK");
             } else {
                 testResult.addClass("text-danger");
                 testResult.removeClass("text-success");
+                testName.addClass("text-danger");
+                testName.removeClass("text-success");
+                testResult.html("FAILED");
             }
             userOutput.html(userResults[i]);
         }
+        if(successes.every((bl) => bl)) {
+           $('#successModal').modal('show');
+        }
+
     }
 </script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/highlight.min.js"></script>

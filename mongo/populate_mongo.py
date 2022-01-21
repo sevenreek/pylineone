@@ -13,8 +13,8 @@ tests = db["tests"]
 tasks_to_insert = [
     Task(0, 'Spaces to underscores', 'Replace spaces with underscores in a string.', 10, ["strings", ]),
     Task(1, 'Spaces to an underscore', 'Replace spaces with a single underscore in a string.', 15, ["strings", ]),
-    Task(2, 'Unique digits', 'Count the number of unique digits in a number.', 15, ["strings", "integers", "sets"]),
-    Task(3, 'Divisors', 'Calculate a number\'s dividors.', 20, ["integers", "math", "loops"]),
+    Task(2, 'Unique digits', 'Count the number of unique digits in a number.', 25, ["strings", "integers", "sets"]),
+    Task(3, 'Divisors', 'Calculate a number\'s dividors.', 35, ["integers", "math", "loops"]),
 ]
 details_to_insert = [
     TaskDetails(
@@ -24,7 +24,8 @@ details_to_insert = [
         '',
         'spaces_to_underscores',
         ['input:str'],
-        'str'
+        'str',
+        ['Search the Python documentation for string member functions.', 'String in Python have a .replace() function.']
     ),
     TaskDetails(
         1, 
@@ -33,7 +34,8 @@ details_to_insert = [
         '',
         'spaces_to_underscore',
         ['input:str'],
-        'str'
+        'str',
+        ['Search Python documentation for string member functions.', 'String in Python have a .split() function.', 'The .split() function does not produce empty strings in the returned list.']
     ),
     TaskDetails(
         2, 
@@ -42,7 +44,9 @@ details_to_insert = [
         '',
         'count_unique_digits',
         ['input:int'],
-        'int'
+        'int',
+        ['Sets contain only unique elements.', 'You can convert a number to a string using the str() function.', 'You treat a string as a list of characters.']
+
     ),
     TaskDetails(
         3, 
@@ -51,7 +55,9 @@ details_to_insert = [
         '',
         'divisors',
         ['input:int'],
-        'list[int]'
+        'list[int]',
+        ['You need to use list comprehension.', 'Check for divisibility using the modulo (%) operator.']
+
     ),
 ]
 tests_to_insert = [

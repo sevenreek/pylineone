@@ -18,11 +18,15 @@ def list_tasks(request):
     })
 
 def show_task(request, task_id):
+    if not request.session.session_key:
+        request.session.create()
+
+    print(request.session.session_key)
     mongo, mdb = get_mongo_client()
     task = mdb['tasks'].find_one({"_id":task_id})
     task_details = mdb['task_details'].find_one({"task_id":task_id})
     task_tests = mdb['tests'].find({"task_id":task_id})
-    task = {**task, **task_details}
+    task = {**task, **task_details, 'id':task['_id']}
     print(task)
     return render(request, 'editor.html', {
         "task":task,
@@ -67,7 +71,15 @@ def check_task(request, task_id):
     print(results)
     successes = [e==o for e,o in zip(expected_output, results)]
     print(successes)
-    return JsonResponse({'proper_code':True, 'test_results':successes, 'return_values':results})
+    response = JsonResponse({'proper_code':True, 'test_results':successes, 'return_values':results})
+    if all(successes):
+        response.set_cookie(f"task{task_id}", "solved", max_age=3600*24*365) # expire in a year
+    else:
+        response.set_cookie(f"task{task_id}", "attempted", max_age=3600*24*365) # expire in a year
+    response.set_cookie(f"task{task_id}_attempt", code, max_age=3600*24*365) # expire in a year
+    
+    return response
+    
 
 def run_test(request, task_id, test_id):
     pass

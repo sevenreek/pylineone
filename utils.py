@@ -25,6 +25,8 @@ def pull_docker_image():
         print("Pulling docker image. This will take a while...")
         client.images.pull('python')
 
+
+
 def get_detached_container():
     client = docker.from_env()
     return client.containers.run('python', detach=True)

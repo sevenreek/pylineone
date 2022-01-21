@@ -18,6 +18,7 @@ class TaskDetails():
     function_name:str
     input_arguments:'list[str]'
     output_type:str
+    hints:'list[str]'
 
 @dataclass
 class TaskTest():
